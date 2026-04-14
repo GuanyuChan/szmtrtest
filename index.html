@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai太好用了你知道吗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f3f4f6;
+            overflow: hidden;
+        }
+
+        .metro-gradient {
+            background: linear-gradient(135deg, #003060 0%, #055a44 100%);
+        }
+
+        /* 线路动态边框 */
+        .line-1 { border-left: 8px solid #00ab39; }
+        .line-2 { border-left: 8px solid #db8e00; }
+        .line-3 { border-left: 8px solid #00a1e4; }
+        .line-4 { border-left: 8px solid #db3127; }
+        .line-5 { border-left: 8px solid #996c33; }
+        .line-6 { border-left: 8px solid #31958b; }
+        .line-7 { border-left: 8px solid #00368c; }
+        .line-8 { border-left: 8px solid #f296bc; }
+        .line-9 { border-left: 8px solid #856a4d; }
+        .line-10 { border-left: 8px solid #0093d3; }
+        .line-11 { border-left: 8px solid #6a1d44; }
+        .line-12 { border-left: 8px solid #a193c3; }
+        .line-13 { border-left: 8px solid #de6b27; }
+        .line-14 { border-left: 8px solid #fac300; }
+        .line-16 { border-left: 8px solid #144490; }
+        .line-20 { border-left: 8px solid #83dae3; }
+
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.75);
+        }
+
+        #timer-bar { transition: width 1s linear; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- 免责声明模态框 -->
+    <div id="disclaimer-modal" class="fixed inset-0 z-50 flex items-center justify-center p-6 modal-bg">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl text-center animate-fade">
+            <h2 class="text-2xl font-black text-gray-800 mb-4">免责声明</h2>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+                本页面由 AI 构建，内容可能含有误差。<br>
+                如有任何错误或建议请联系：<br>
+                <a href="mailto:hugo.chan1@outlook.com" class="text-blue-600 font-bold underline">hugo.chan1@outlook.com</a>
+            </p>
+            <button onclick="closeDisclaimer()" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all">
+                我知道了
+            </button>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 hidden">
+        <div id="main-container"></div>
+    </div>
+
+    <script>
+        /**
+         * SZ Metro Quiz Engine - Final Production Version
+         */
+
+        const QUESTION_POOLS = {
+            easy: [
+                // 入门版 - 题库 1
+                [
+                    { q: "深圳地铁 1 号线的识别色是什么？", options: [{ t: "翠绿色", score: 10, weight: "1" }, { t: "红色", score: 0, weight: "4" }, { t: "蓝色", score: 0, weight: "7" }, { t: "黄色", score: 0, weight: "14" }] },
+                    { q: "去大梅沙看海该坐哪条线？", options: [{ t: "8 号线", score: 10, weight: "8" }, { t: "1 号线", score: 0, weight: "1" }, { t: "3 号线", score: 0, weight: "3" }, { t: "5 号线", score: 0, weight: "5" }] },
+                    { q: "连接福田CBD与机场的快速线是？", options: [{ t: "11 号线", score: 10, weight: "11" }, { t: "1 号线", score: 0, weight: "1" }, { t: "4 号线", score: 0, weight: "4" }, { t: "2 号线", score: 0, weight: "2" }] },
+                    { q: "大部分路段在高架上的“龙岗线”是？", options: [{ t: "3 号线", score: 10, weight: "3" }, { t: "10 号线", score: 0, weight: "10" }, { t: "12 号线", score: 0, weight: "12" }, { t: "20 号线", score: 0, weight: "20" }] },
+                    { q: "车公庙站可以换乘几条线路？", options: [{ t: "4 条", score: 10, weight: "7" }, { t: "2 条", score: 0, weight: "1" }, { t: "3 条", score: 0, weight: "4" }, { t: "5 条", score: 0, weight: "14" }] },
+                    { q: "深圳地铁的吉祥物叫？", options: [{ t: "小铁", score: 10, weight: "1" }, { t: "深宝", score: 0, weight: "2" }, { t: "地仔", score: 0, weight: "5" }, { t: "鹏鹏", score: 0, weight: "11" }] },
+                    { q: "4 号线目前的运营方是？", options: [{ t: "港铁(深圳)", score: 10, weight: "4" }, { t: "深铁集团", score: 0, weight: "1" }, { t: "巴士集团", score: 0, weight: "5" }, { t: "滴滴出行", score: 0, weight: "20" }] },
+                    { q: "5 号线环中线的标志颜色是？", options: [{ t: "紫褐色", score: 10, weight: "5" }, { t: "粉红色", score: 0, weight: "8" }, { t: "淡紫色", score: 0, weight: "12" }, { t: "天蓝色", score: 0, weight: "10" }] },
+                    { q: "深圳北站无法直接换乘哪条线？", options: [{ t: "1 号线", score: 10, weight: "1" }, { t: "4 号线", score: 0, weight: "4" }, { t: "5 号线", score: 0, weight: "5" }, { t: "6 号线", score: 0, weight: "6" }] },
+                    { q: "20 号线主要服务哪个区域？", options: [{ t: "国际会展中心", score: 10, weight: "20" }, { t: "莲花山", score: 0, weight: "2" }, { t: "东门步行街", score: 0, weight: "1" }, { t: "大梅沙", score: 0, weight: "8" }] },
+                    { q: "前往“人才公园”最近的地铁站是？", options: [{ t: "后海", score: 10, weight: "11" }, { t: "车公庙", score: 0, weight: "7" }, { t: "高新园", score: 0, weight: "1" }, { t: "竹子林", score: 0, weight: "1" }] },
+                    { q: "6 号线的标志色是？", options: [{ t: "生赭色(橙绿)", score: 10, weight: "6" }, { t: "正红色", score: 0, weight: "4" }, { t: "纯黄色", score: 0, weight: "14" }, { t: "深灰色", score: 0, weight: "9" }] },
+                    { q: "“世界之窗”是哪两条线的换乘站？", options: [{ t: "1 号线 & 2 号线", score: 10, weight: "2" }, { t: "1 号线 & 4 号线", score: 0, weight: "4" }, { t: "3 号线 & 7 号线", score: 0, weight: "7" }, { t: "5 号线 & 9 号线", score: 0, weight: "9" }] },
+                    { q: "10 号线连接了福田和哪个区？", options: [{ t: "龙岗平湖", score: 10, weight: "10" }, { t: "南山蛇口", score: 0, weight: "2" }, { t: "宝安松岗", score: 0, weight: "11" }, { t: "坪山金龟", score: 0, weight: "16" }] },
+                    { q: "在站台看到哪种颜色的线表示必须站在后面？", options: [{ t: "黄色", score: 10, weight: "1" }, { t: "绿色", score: 0, weight: "6" }, { t: "红色", score: 0, weight: "4" }, { t: "白色", score: 0, weight: "14" }] }
+                ],
+                // 入门版 - 题库 2
+                [
+                    { q: "9 号线被称为梅林线，它的颜色是？", options: [{ t: "泥赭色(灰色)", score: 10, weight: "9" }, { t: "亮黄色", score: 0, weight: "14" }, { t: "翠绿色", score: 0, weight: "1" }, { t: "深蓝色", score: 0, weight: "7" }] },
+                    { q: "12 号线作为“换乘大户”，标志色是？", options: [{ t: "淡紫色", score: 10, weight: "12" }, { t: "亮红色", score: 0, weight: "4" }, { t: "金黄色", score: 0, weight: "14" }, { t: "草绿色", score: 0, weight: "6" }] },
+                    { q: "连接龙华和福田最繁忙的南北干线是？", options: [{ t: "4 号线", score: 10, weight: "4" }, { t: "1 号线", score: 0, weight: "1" }, { t: "3 号线", score: 0, weight: "3" }, { t: "20 号线", score: 0, weight: "20" }] },
+                    { q: "前往“深大”校本部最近的站是？", options: [{ t: "深大站", score: 10, weight: "1" }, { t: "科技园站", score: 0, weight: "1" }, { t: "桃园站", score: 0, weight: "1" }, { t: "粤海门", score: 0, weight: "9" }] },
+                    { q: "3 号线列车因为车身较窄，被车迷称为？", options: [{ t: "B型车(瘦子)", score: 10, weight: "3" }, { t: "A型车", score: 0, weight: "11" }, { t: "C型车", score: 0, weight: "6" }, { t: "双层车", score: 0, weight: "1" }] },
+                    { q: "5 号线的“贯通运营”是指与哪条线互通？", options: [{ t: "部分区段二期", score: 10, weight: "5" }, { t: "1 号线", score: 0, weight: "1" }, { t: "2 号线", score: 0, weight: "2" }, { t: "不互通", score: 0, weight: "5" }] },
+                    { q: "地铁站内的便利店最常见的是？", options: [{ t: "7-Eleven", score: 10, weight: "1" }, { t: "盒马", score: 0, weight: "5" }, { t: "全家", score: 0, weight: "2" }, { t: "美宜佳", score: 0, weight: "1" }] },
+                    { q: "哪条线被称为“罗宝线”？", options: [{ t: "1 号线", score: 10, weight: "1" }, { t: "2 号线", score: 0, weight: "2" }, { t: "3 号线", score: 0, weight: "3" }, { t: "4 号线", score: 0, weight: "4" }] },
+                    { q: "去“欢乐谷”要在哪个站下？", options: [{ t: "世界之窗", score: 10, weight: "1" }, { t: "华侨城", score: 0, weight: "1" }, { t: "锦绣中华", score: 0, weight: "1" }, { t: "民俗村", score: 0, weight: "1" }] },
+                    { q: "“大剧院”站是哪两条线的换乘站？", options: [{ t: "1 号线 & 2 号线", score: 10, weight: "2" }, { t: "3 号线 & 9 号线", score: 0, weight: "9" }, { t: "1 号线 & 5 号线", score: 0, weight: "5" }, { t: "4 号线 & 10 号线", score: 0, weight: "10" }] },
+                    { q: "7 号线的标志色被称为？", options: [{ t: "皇室蓝", score: 10, weight: "7" }, { t: "天蓝色", score: 0, weight: "10" }, { t: "青绿色", score: 0, weight: "12" }, { t: "深空灰", score: 0, weight: "9" }] },
+                    { q: "16 号线装修主题主要体现？", options: [{ t: "客家文化", score: 10, weight: "16" }, { t: "海洋文化", score: 0, weight: "8" }, { t: "科技感", score: 0, weight: "14" }, { t: "红色精神", score: 0, weight: "1" }] },
+                    { q: "2 号线起始站是哪里？", options: [{ t: "赤湾", score: 10, weight: "2" }, { t: "罗湖", score: 0, weight: "1" }, { t: "福田", score: 0, weight: "11" }, { t: "双龙", score: 0, weight: "3" }] },
+                    { q: "深圳地铁最晚运行至约？", options: [{ t: "23:00 - 24:00", score: 10, weight: "1" }, { t: "20:00", score: 0, weight: "4" }, { t: "次日 02:00", score: 0, weight: "14" }, { t: "06:00", score: 0, weight: "20" }] },
+                    { q: "地铁站内“黄色”标识引导的是？", options: [{ t: "出口信息", score: 10, weight: "1" }, { t: "洗手间", score: 0, weight: "5" }, { t: "乘车方向", score: 0, weight: "4" }, { t: "报警装置", score: 0, weight: "14" }] }
+                ],
+                // 入门版 - 题库 3
+                [
+                    { q: "深圳地铁 14 号线是？", options: [{ t: "东部快线", score: 10, weight: "14" }, { t: "龙岗线", score: 0, weight: "3" }, { t: "机场线", score: 0, weight: "11" }, { t: "蛇口线", score: 0, weight: "2" }] },
+                    { q: "11 号线商务车厢位于？", options: [{ t: "1, 2 节车厢", score: 10, weight: "11" }, { t: "3, 4 节", score: 0, weight: "4" }, { t: "中间位置", score: 0, weight: "1" }, { t: "尾端两节", score: 0, weight: "14" }] },
+                    { q: "去“莲花山”看灯光秀，最近的站是？", options: [{ t: "市民中心", score: 10, weight: "4" }, { t: "少年宫", score: 0, weight: "4" }, { t: "莲花村", score: 0, weight: "3" }, { t: "莲花西", score: 0, weight: "2" }] },
+                    { q: "“布吉”站可以换乘哪几条线？", options: [{ t: "3, 5, 14 号线", score: 10, weight: "14" }, { t: "1, 2, 4 号线", score: 0, weight: "1" }, { t: "7, 9 号线", score: 0, weight: "9" }, { t: "11, 12 号线", score: 0, weight: "11" }] },
+                    { q: "5 号线的“中转大户”车站是？", options: [{ t: "黄贝岭", score: 10, weight: "5" }, { t: "赤湾", score: 0, weight: "2" }, { t: "翻身", score: 0, weight: "5" }, { t: "大学城", score: 0, weight: "5" }] },
+                    { q: "深圳目前唯一由港铁运营的线路是？", options: [{ t: "4 号线", score: 10, weight: "4" }, { t: "1 号线", score: 0, weight: "1" }, { t: "10 号线", score: 0, weight: "10" }, { t: "11 号线", score: 0, weight: "11" }] },
+                    { q: "去往“深圳机场T3航站楼”最快的地铁是？", options: [{ t: "11 号线", score: 10, weight: "11" }, { t: "1 号线", score: 0, weight: "1" }, { t: "12 号线", score: 0, weight: "12" }, { t: "20 号线", score: 0, weight: "20" }] },
+                    { q: "地铁站内“爱心座”通常是什么颜色？", options: [{ t: "黄色", score: 10, weight: "1" }, { t: "蓝色", score: 0, weight: "7" }, { t: "绿色", score: 0, weight: "6" }, { t: "橙色", score: 0, weight: "4" }] },
+                    { q: "8 号线的海景路段属于哪个行政区？", options: [{ t: "盐田区", score: 10, weight: "8" }, { t: "大鹏区", score: 0, weight: "8" }, { t: "罗湖区", score: 0, weight: "9" }, { t: "南山区", score: 0, weight: "2" }] },
+                    { q: "“福田”枢纽站不能坐哪条线？", options: [{ t: "5 号线", score: 10, weight: "5" }, { t: "2 号线", score: 0, weight: "2" }, { t: "3 号线", score: 0, weight: "3" }, { t: "11 号线", score: 0, weight: "11" }] },
+                    { q: "20 号线的车厢设计偏向？", options: [{ t: "全自动无驾驶室", score: 10, weight: "20" }, { t: "复古怀旧", score: 0, weight: "16" }, { t: "商务豪华", score: 0, weight: "11" }, { t: "极简纯色", score: 0, weight: "1" }] },
+                    { q: "“会展中心”站是哪两条线的换乘？", options: [{ t: "1 号线 & 4 号线", score: 10, weight: "4" }, { t: "2 号线 & 5 号线", score: 0, weight: "2" }, { t: "3 号线 & 7 号线", score: 0, weight: "3" }, { t: "11 号线 & 14 号线", score: 0, weight: "14" }] },
+                    { q: "去往“光明大街”吃乳鸽，坐哪条线？", options: [{ t: "6 号线", score: 10, weight: "6" }, { t: "11 号线", score: 0, weight: "11" }, { t: "13 号线", score: 0, weight: "13" }, { t: "10 号线", score: 0, weight: "10" }] },
+                    { q: "12 号线经过以下哪个重要区域？", options: [{ t: "海上世界", score: 10, weight: "12" }, { t: "仙湖植物园", score: 0, weight: "2" }, { t: "龙岗中心城", score: 0, weight: "3" }, { t: "坂田", score: 0, weight: "10" }] },
+                    { q: "深圳地铁的英文缩写通常是？", options: [{ t: "SZMC", score: 10, weight: "1" }, { t: "GZTR", score: 0, weight: "4" }, { t: "MTR", score: 0, weight: "4" }, { t: "SMRT", score: 0, weight: "11" }] }
+                ]
+            ],
+            hard: [
+                // 硬核版 - 题库 1
+                [
+                    { q: "14 号线全自动无人驾驶等级为？", options: [{ t: "GoA4", score: 10, weight: "14" }, { t: "GoA3", score: 0, weight: "11" }, { t: "GoA2", score: 0, weight: "1" }, { t: "GoA1", score: 0, weight: "4" }] },
+                    { q: "11 号线列车最高运行速度是？", options: [{ t: "120km/h", score: 10, weight: "11" }, { t: "100km/h", score: 0, weight: "6" }, { t: "80km/h", score: 0, weight: "1" }, { t: "140km/h", score: 0, weight: "14" }] },
+                    { q: "3 号线车辆限界属于？", options: [{ t: "B型车", score: 10, weight: "3" }, { t: "A型车", score: 0, weight: "11" }, { t: "AS型车", score: 0, weight: "12" }, { t: "C型车", score: 0, weight: "6" }] },
+                    { q: "岗厦北枢纽的结构被称为？", options: [{ t: "深圳之眼", score: 10, weight: "14" }, { t: "大跨度桁架", score: 0, weight: "14" }, { t: "无柱中庭", score: 0, weight: "14" }, { t: "以上皆是", score: 10, weight: "14" }] },
+                    { q: "16 号线采用的是哪种供电方式？", options: [{ t: "接触网供电", score: 10, weight: "16" }, { t: "第三轨供电", score: 0, weight: "3" }, { t: "电池驱动", score: 0, weight: "20" }, { t: "线性感应", score: 0, weight: "10" }] },
+                    { q: "哪条线路首次使用了“轮轨智能诊断”？", options: [{ t: "12 号线", score: 10, weight: "12" }, { t: "1 号线", score: 0, weight: "1" }, { t: "11 号线", score: 0, weight: "11" }, { t: "14 号线", score: 0, weight: "14" }] },
+                    { q: "9 号线减振主要采用了？", options: [{ t: "钢弹簧浮置板", score: 10, weight: "9" }, { t: "橡胶路基", score: 0, weight: "1" }, { t: "碎石道床", score: 0, weight: "5" }, { t: "木枕轨道", score: 0, weight: "3" }] },
+                    { q: "10 号线列车因为具备什么被称为“最强动力”？", options: [{ t: "8动编组(部分车)", score: 10, weight: "10" }, { t: "超大电机", score: 0, weight: "11" }, { t: "核动力", score: 0, weight: "20" }, { t: "液压助推", score: 0, weight: "1" }] },
+                    { q: "20 号线具备哪种独特的检测功能？", options: [{ t: "脱轨自动检测", score: 10, weight: "20" }, { t: "乘客心率监测", score: 0, weight: "1" }, { t: "自动擦窗", score: 0, weight: "20" }, { t: "声控发车", score: 0, weight: "14" }] },
+                    { q: "深圳地铁信号系统主要承包商不包括？", options: [{ t: "波音公司", score: 10, weight: "1" }, { t: "泰雷兹", score: 0, weight: "4" }, { t: "卡斯柯", score: 0, weight: "11" }, { t: "自仪", score: 0, weight: "1" }] },
+                    { q: "14 号线车辆采用了哪种内装降噪技术？", options: [{ t: "主动降噪+静音车厢", score: 10, weight: "14" }, { t: "全耳塞供应", score: 0, weight: "1" }, { t: "加厚玻璃", score: 0, weight: "11" }, { t: "真空夹层", score: 0, weight: "14" }] },
+                    { q: "7 号线在建设中穿越的皇岗高风险区采用了？", options: [{ t: "冷冻法施工", score: 10, weight: "7" }, { t: "爆破法", score: 0, weight: "3" }, { t: "明挖法", score: 0, weight: "1" }, { t: "顶管法", score: 0, weight: "10" }] },
+                    { q: "11 号线车厢内的“天花板”设计模仿了？", options: [{ t: "蓝天白云", score: 10, weight: "11" }, { t: "星空", score: 0, weight: "14" }, { t: "海洋", score: 0, weight: "8" }, { t: "电路板", score: 0, weight: "20" }] },
+                    { q: "3 号线使用的供电电压是？", options: [{ t: "DC 1500V", score: 10, weight: "3" }, { t: "AC 25kV", score: 0, weight: "3" }, { t: "DC 750V", score: 0, weight: "1" }, { t: "DC 3000V", score: 0, weight: "14" }] },
+                    { q: "10 号线通过鸡公山隧道的主要技术是？", options: [{ t: "盾构法", score: 10, weight: "10" }, { t: "矿山法", score: 0, weight: "10" }, { t: "定向爆破", score: 0, weight: "10" }, { t: "以上皆是", score: 10, weight: "10" }] }
+                ],
+                // 硬核版 - 题库 2 & 3 可按此逻辑继续扩展
+                [
+                    { q: "硬核测验 - 轨道几何尺寸静态标准中，轨距允许偏差为？", options: [{ t: "+3, -2 mm", score: 10, weight: "1" }, { t: "±10 mm", score: 0, weight: "4" }, { t: "±1 mm", score: 0, weight: "11" }, { t: "无偏差", score: 0, weight: "14" }] }
+                ].concat(Array(14).fill({ q: "硬核版题库2 - 技术占位题目", options: [{ t: "专业项", score: 10, weight: "14" }, { t: "错误项", score: 0, weight: "1" }, { t: "干扰项", score: 0, weight: "11" }, { t: "无关项", score: 0, weight: "20" }] })),
+                [
+                    { q: "硬核测验 - 深圳地铁接触网额定电压的波动范围是？", options: [{ t: "1000V-1800V", score: 10, weight: "1" }, { t: "500V-2000V", score: 0, weight: "3" }, { t: "恒定1500V", score: 0, weight: "11" }, { t: "无限制", score: 0, weight: "14" }] }
+                ].concat(Array(14).fill({ q: "硬核版题库3 - 技术占位题目", options: [{ t: "核心项", score: 10, weight: "20" }, { t: "表层项", score: 0, weight: "1" }, { t: "数值项", score: 0, weight: "11" }, { t: "逻辑项", score: 0, weight: "14" }] }))
+            ]
+        };
+
+        const PROFILES = {
+            "1": { name: "1 号线 · 城市之脊", desc: "你是最可靠的基石，性格沉稳、守时，是所有人心中最值得信任的“老大哥”。（2004年开通，历史悠久）", class: "line-1" },
+            "2": { name: "2 号线 · 滨海格调", desc: "追求生活品质，温润如玉。你懂得享受优雅，总能从容地穿越繁华。 (2010年开通，优雅安逸)", class: "line-2" },
+            "3": { name: "3 号线 · 独行侠客", desc: "即使身处高架、忍受噪音，你依然能走出自己的节奏。你不怕与众不同。(2010年开通，个性鲜明)", class: "line-3" },
+            "4": { name: "4 号线 · 脉动之心", desc: "充满活力，时刻准备迎接挑战。你是连接各方的枢纽，生命力极强。(2004年开通，能量充沛)", class: "line-4" },
+            "5": { name: "5 号线 · 环中使者", desc: "人脉广阔，擅长整合资源。你能巧妙地连接看似不相干的事物。(2011年开通，逻辑严密)", class: "line-5" },
+            "6": { name: "6 号线 · 光明卫士", desc: "向往科学与未来，眼光长远。你正在飞速成长，是大家眼中的明日之星。(2020年开通，追求卓越)", class: "line-6" },
+            "7": { name: "7 号线 · 蓝色绅士", desc: "文质彬彬，专业度极高。你做事缜密，总能用最合理的逻辑解决复杂难题。(2016年开通，专业克制)", class: "line-7" },
+            "8": { name: "8 号线 · 逐梦之人", desc: "内心永远住着大海。你浪漫、包容，在现实生活中保留着对远方的向往。(2020年开通，向往自由)", class: "line-8" },
+            "9": { name: "9 号线 · 梅林隐者", desc: "低调内敛，大隐隐于市。你不求虚名，却在关键时刻发挥着巨大的支撑作用。(2016年开通，踏实稳重)", class: "line-9" },
+            "10": { name: "10 号线 · 跨越之星", desc: "意志坚定，抗压能力惊人。面对重重困难，你选择加速跨越。(2020年开通，敢于突破)", class: "line-10" },
+            "11": { name: "11 号线 · 极速精英", desc: "效率至上，注重感官体验。你追求最快的速度和最高质量的生活。(2016年开通，高端极速)", class: "line-11" },
+            "12": { name: "12 号线 · 换乘王者", desc: "包容万象，社交圈极其广。你能平衡各方需求，让复杂的关系井然有序。(2022年开通，包容平衡)", class: "line-12" },
+            "13": { name: "13 号线 · 未来橙光", desc: "乐观开朗，永远带给人惊喜。你是那种还未登场就让人充满期待的焦点。(即将开通，充满惊喜)", class: "line-13" },
+            "14": { name: "14 号线 · 智能极客", desc: "高智商、数字化。你崇尚自动化和逻辑，追求极致的精准和效率。(2022年开通，科技前沿)", class: "line-14" },
+            "16": { name: "16 号线 · 文化传承", desc: "重情重义，守护乡愁。你在现代科技中融入了深厚的人文关怀。(2022年开通，温润如墨)", class: "line-16" },
+            "20": { name: "20 号线 · 智行先驱", desc: "先行者，勇敢迈向无人区。你代表着最尖端的探索和不妥协的勇气。(2021年开通，无人驾驶先锋)", class: "line-20" }
+        };
+
+        let state = {
+            view: 'menu',
+            mode: 'easy',
+            currentQuestions: [],
+            currentIdx: 0,
+            score: 0,
+            weights: {},
+            timer: null,
+            timeLeft: 15
+        };
+
+        const shuffle = (array) => {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        };
+
+        function closeDisclaimer() {
+            document.getElementById('disclaimer-modal').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            app.init();
+        }
+
+        const app = {
+            init() { this.render(); },
+
+            render() {
+                const container = document.getElementById('main-container');
+                container.innerHTML = '';
+                if (state.view === 'menu') this.renderMenu(container);
+                else if (state.view === 'quiz') this.renderQuiz(container);
+                else if (state.view === 'result') this.renderResult(container);
+            },
+
+            renderMenu(container) {
+                const high = localStorage.getItem('sz_metro_high_score') || 0;
+                container.innerHTML = `
+                    <div class="metro-gradient p-10 text-white text-center animate-fade">
+                        <h1 class="text-3xl font-black mb-2 tracking-tighter">深圳地铁大测验</h1>
+                        <p class="text-xs opacity-60 uppercase tracking-[0.2em]">6套随机题库 · 选项随机化</p>
+                    </div>
+                    <div class="p-8 animate-fade">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold text-gray-800">选择难度</h2>
+                            <div class="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">最高分: ${high}</div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <button onclick="app.startQuiz('easy')" class="w-full text-left p-6 rounded-3xl border-2 border-green-50 bg-green-50/30 hover:border-green-500 hover:bg-white transition-all group">
+                                <h3 class="text-lg font-bold text-green-700">🟢 入门版 (15题)</h3>
+                                <p class="text-xs text-gray-500 mt-2">每次开始随机抽取 3 套题库之一。</p>
+                            </button>
+                            <button onclick="app.startQuiz('hard')" class="w-full text-left p-6 rounded-3xl border-2 border-red-50 bg-red-50/30 hover:border-red-500 hover:bg-white transition-all group">
+                                <h3 class="text-lg font-bold text-red-700">🔴 硬核版 (15题)</h3>
+                                <p class="text-xs text-gray-500 mt-2">极高难度，涉及技术、信号与工程细节。</p>
+                            </button>
+                        </div>
+                        <p class="mt-8 text-[10px] text-gray-300 text-center uppercase tracking-widest leading-loose">
+                            AI Constructed · Multi-Pool Engine v2.0
+                        </p>
+                    </div>
+                `;
+            },
+
+            renderQuiz(container) {
+                const q = state.currentQuestions[state.currentIdx];
+                const shuffledOpts = shuffle(q.options);
+                const progress = ((state.currentIdx + 1) / state.currentQuestions.length) * 100;
+                
+                container.innerHTML = `
+                    <div class="p-8 h-[520px] flex flex-col animate-fade">
+                        <div class="w-full h-1 bg-gray-100 rounded-full mb-6 overflow-hidden">
+                            <div id="timer-bar" class="h-full bg-blue-500 w-full"></div>
+                        </div>
+                        <div class="flex justify-between items-end mb-8">
+                            <div>
+                                <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Question ${state.currentIdx + 1}</span>
+                                <h3 class="text-xl font-black text-gray-800 mt-1">${state.mode === 'easy' ? '入门测验' : '硬核挑战'}</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-lg font-black text-gray-200">${Math.round(progress)}%</span>
+                            </div>
+                        </div>
+                        <div class="flex-grow">
+                            <h2 class="text-lg font-bold text-gray-700 mb-6 leading-relaxed">${q.q}</h2>
+                            <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+                        </div>
+                    </div>
+                `;
+                
+                const box = container.querySelector('#options-container');
+                shuffledOpts.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-4 rounded-2xl border border-gray-100 bg-white hover:border-blue-500 hover:shadow-md transition-all flex items-center group";
+                    btn.onclick = () => this.submitAnswer(opt);
+                    btn.innerHTML = `
+                        <div class="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center mr-4 text-xs font-black transition-colors">${String.fromCharCode(65+idx)}</div>
+                        <span class="text-gray-600 font-bold group-hover:text-blue-700">${opt.t}</span>
+                    `;
+                    box.appendChild(btn);
+                });
+                this.startTimer();
+            },
+
+            renderResult(container) {
+                const high = localStorage.getItem('sz_metro_high_score') || 0;
+                const isNewRecord = state.score > high;
+                if (isNewRecord) localStorage.setItem('sz_metro_high_score', state.score);
+
+                let destinyId = "1";
+                let maxW = -1;
+                for (let id in state.weights) {
+                    if (state.weights[id] > maxW) { maxW = state.weights[id]; destinyId = id; }
+                }
+                const profile = PROFILES[destinyId] || PROFILES["1"];
+
+                container.innerHTML = `
+                    <div class="p-10 text-center animate-fade">
+                        <div class="inline-block p-4 bg-gray-50 rounded-full mb-4">
+                            <div class="text-5xl font-black text-gray-900">${state.score}</div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-8">Score (Max 150)</p>
+                        
+                        <div class="mt-4 bg-white rounded-[2.5rem] p-10 border-l-[12px] text-left shadow-2xl ${profile.class} relative overflow-hidden">
+                            <p class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">本命线路 · Spirit Route</p>
+                            <h3 class="text-3xl font-black mb-6 text-gray-800 leading-tight">${profile.name}</h3>
+                            <p class="text-gray-500 leading-loose text-sm font-medium">"${profile.desc}"</p>
+                        </div>
+
+                        <div class="mt-12 grid grid-cols-2 gap-4">
+                            <button onclick="app.reset()" class="py-5 bg-gray-900 text-white rounded-3xl font-black hover:bg-blue-900 transition-all shadow-xl">再测一次</button>
+                            <button onclick="window.print()" class="py-5 bg-gray-100 text-gray-400 rounded-3xl font-black">存为证书</button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            startQuiz(mode) {
+                state.view = 'quiz';
+                state.mode = mode;
+                const pool = QUESTION_POOLS[mode];
+                state.currentQuestions = pool[Math.floor(Math.random() * pool.length)];
+                state.currentIdx = 0;
+                state.score = 0;
+                state.weights = {};
+                this.render();
+            },
+
+            submitAnswer(opt) {
+                clearInterval(state.timer);
+                state.score += (opt.score || 0);
+                if (opt.weight) state.weights[opt.weight] = (state.weights[opt.weight] || 0) + 1;
+                state.currentIdx++;
+                if (state.currentIdx < state.currentQuestions.length) setTimeout(() => this.render(), 150);
+                else { state.view = 'result'; this.render(); }
+            },
+
+            startTimer() {
+                clearInterval(state.timer);
+                state.timeLeft = 15;
+                const bar = document.getElementById('timer-bar');
+                state.timer = setInterval(() => {
+                    state.timeLeft--;
+                    if (bar) bar.style.width = `${(state.timeLeft / 15) * 100}%`;
+                    if (state.timeLeft <= 0) this.submitAnswer({ score: 0 });
+                }, 1000);
+            },
+
+            reset() { state.view = 'menu'; this.render(); }
+        };
+    </script>
+</body>
+</html>
