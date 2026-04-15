@@ -108,6 +108,32 @@
         #tab-content {
             transition: opacity 0.22s ease, transform 0.22s ease;
         }
+
+        /* Tab 滑块指示器 */
+        .tab-track {
+            position: relative;
+        }
+        .tab-slider {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: 50%;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            transition: transform 0.28s cubic-bezier(0.34, 1.26, 0.64, 1);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .tab-slider.right { transform: translateX(100%); }
+        .tab-pill-label {
+            position: relative; z-index: 1;
+            flex: 1; padding: 0.5rem 0;
+            font-size: 0.875rem; font-weight: 700;
+            text-align: center;
+            transition: color 0.2s;
+            background: transparent; border: none; cursor: pointer;
+        }
     </style>
 </head>
 <body class="p-4">
@@ -134,6 +160,12 @@
     <div id="app" class="max-w-xl w-full glass-card rounded-[3rem] shadow-2xl hidden relative z-10 overflow-hidden">
         <!-- 所有内容将动态渲染，但包装一个滚动层 -->
         <div id="main-container" class="scrollable-container"></div>
+    </div>
+
+    <!-- 构建版本徽章 -->
+    <div id="build-badge" style="position:fixed;bottom:1rem;right:1rem;z-index:20;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:0.75rem;padding:0.4rem 0.75rem;text-align:right;display:none;">
+        <div id="build-ver" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.05em;">构建版本 —</div>
+        <div id="build-ago" style="font-size:10px;color:rgba(255,255,255,0.55);">加载中…</div>
     </div>
 
     <script>
@@ -273,21 +305,21 @@ metroL4: [
 
             line7: [
                 [
-                    { q: "深圳地铁7号线的识别色是？", options: [{ t: "深蓝色", score: 10 }, { t: "天蓝色", score: 0 }, { t: "翠绿色", score: 0 }, { t: "橙黄色", score: 0 }] },
+                    { q: "深圳地铁7号线的识别色是？", options: [{ t: "深蓝色", score: 10 }, { t: "狗椅色", score: 0 }, { t: "翠绿色", score: 0 }, { t: "橙黄色", score: 0 }] },
                     { q: "7号线的起点站是？", options: [{ t: "西丽", score: 10 }, { t: "太安", score: 0 }, { t: "购物公园", score: 0 }, { t: "深圳大学", score: 0 }] },
-                    { q: "7号线的终点站是？", options: [{ t: "太安", score: 10 }, { t: "西丽", score: 0 }, { t: "华南城", score: 0 }, { t: "笋岗", score: 0 }] },
+                    { q: "7号线的终点站是？", options: [{ t: "深大丽湖", score: 10 }, { t: "西丽", score: 0 }, { t: "华南城", score: 0 }, { t: "笋岗", score: 0 }] },
                     { q: "以下哪个是7号线上预留但目前尚未开通的车站？", options: [{ t: "福邻站", score: 10 }, { t: "华强北站", score: 0 }, { t: "购物公园站", score: 0 }, { t: "西丽站", score: 0 }] },
                     { q: "7号线上的文体公园站目前处于什么状态？", options: [{ t: "预留暂未开通", score: 10 }, { t: "正常运营中", score: 0 }, { t: "已永久取消", score: 0 }, { t: "改名后运营", score: 0 }] },
                     { q: "7号线与5号线的换乘站是？", options: [{ t: "西丽", score: 10 }, { t: "购物公园", score: 0 }, { t: "深大", score: 0 }, { t: "华强北", score: 0 }] },
                     { q: "7号线途经的著名电子消费商圈是？", options: [{ t: "华强北", score: 10 }, { t: "东门老街", score: 0 }, { t: "海岸城", score: 0 }, { t: "万象城", score: 0 }] },
-                    { q: "7号线与1号线的换乘站是？", options: [{ t: "购物公园", score: 10 }, { t: "西丽", score: 0 }, { t: "竹子林", score: 0 }, { t: "侨城北", score: 0 }] },
+                    { q: "7号线与1号线的换乘站是？", options: [{ t: "车公庙", score: 10 }, { t: "西丽", score: 0 }, { t: "竹子林", score: 0 }, { t: "侨城北", score: 0 }] },
                     { q: "7号线正式开通运营的年份是？", options: [{ t: "2016年", score: 10 }, { t: "2019年", score: 0 }, { t: "2014年", score: 0 }, { t: "2021年", score: 0 }] },
                     { q: "7号线在施工中穿越高水位软土层时采用的特殊工法是？", options: [{ t: "冷冻法", score: 10 }, { t: "盾构法", score: 0 }, { t: "明挖法", score: 0 }, { t: "沉管法", score: 0 }] },
-                    { q: "7号线列车的车型编组为？", options: [{ t: "6B型", score: 10 }, { t: "4A型", score: 0 }, { t: "8A型", score: 0 }, { t: "6A型", score: 0 }] },
-                    { q: "7号线与4号线的换乘站是？", options: [{ t: "华强北", score: 10 }, { t: "竹子林", score: 0 }, { t: "侨城北", score: 0 }, { t: "石厦", score: 0 }] },
+                    { q: "7号线列车的车型编组为？", options: [{ t: "6A型", score: 10 }, { t: "4A型", score: 0 }, { t: "8A型", score: 0 }, { t: "6A型", score: 0 }] },
+                    { q: "7号线与4号线的换乘站是？", options: [{ t: "福民", score: 10 }, { t: "竹子林", score: 0 }, { t: "侨城北", score: 0 }, { t: "石厦", score: 0 }] },
                     { q: "7号线属于深圳地铁第几期建设工程？", options: [{ t: "三期", score: 10 }, { t: "二期", score: 0 }, { t: "四期", score: 0 }, { t: "一期", score: 0 }] },
                     { q: "以下哪个站位于7号线上？", options: [{ t: "笋岗", score: 10 }, { t: "红树湾南", score: 0 }, { t: "岗厦北", score: 0 }, { t: "大运", score: 0 }] },
-                    { q: "7号线在竹子林站可换乘哪两条线路？", options: [{ t: "1号线 & 2号线", score: 10 }, { t: "3号线 & 5号线", score: 0 }, { t: "9号线 & 11号线", score: 0 }, { t: "4号线 & 6号线", score: 0 }] }
+                    { q: "7号线的外号是？", options: [{ t: "狗椅", score: 10 }, { t: "烂爆", score: 0 }, { t: "猫猫", score: 0 }, { t: "桃北好烧！！！😍😍😍😍", score: 0 }] }
                 ]
             ],
 
@@ -295,14 +327,14 @@ metroL4: [
                 [
                     { q: "11号线列车进入福田站前明显减速，主要原因是？", options: [{ t: "进站坡度大（约28‰下坡），需提前制动", score: 10 }, { t: "福田站限速规定", score: 0 }, { t: "进站弯道太急", score: 0 }, { t: "站台长度不足", score: 0 }] },
                     { q: "11号线商务车厢的票价是普通车厢的几倍？", options: [{ t: "3倍", score: 10 }, { t: "2倍", score: 0 }, { t: "1.5倍", score: 0 }, { t: "5倍", score: 0 }] },
-                    { q: "11号线商务车厢的顶部装饰图案是？", options: [{ t: "蓝天白云", score: 10 }, { t: "星空银河", score: 0 }, { t: "深海波浪", score: 0 }, { t: "电路图案", score: 0 }] },
+                    { q: "11号线旧商务车厢的顶部装饰图案是？", options: [{ t: "蓝天白云", score: 10 }, { t: "星空银河", score: 0 }, { t: "深海波浪", score: 0 }, { t: "电路图案", score: 0 }] },
                     { q: "11号线商务车厢位于列车的哪几节？", options: [{ t: "第1、2节（最前两节）", score: 10 }, { t: "最后两节", score: 0 }, { t: "中间两节", score: 0 }, { t: "全列均为商务", score: 0 }] },
                     { q: "11号线商务车厢配备的座椅类型是？", options: [{ t: "真皮航空式座椅", score: 10 }, { t: "普通布艺座椅", score: 0 }, { t: "木质长椅", score: 0 }, { t: "折叠硬座", score: 0 }] },
-                    { q: "11号线商务车厢设有哪种充电设施？", options: [{ t: "USB充电口 & 电源插座", score: 10 }, { t: "无充电设施", score: 0 }, { t: "仅无线充电", score: 0 }, { t: "仅USB充电口", score: 0 }] },
+                    { q: "11号线新商务车厢设有哪种充电设施？", options: [{ t: "USB充电口 & 电源插座", score: 0 }, { t: "无充电设施", score: 0 }, { t: "仅无线充电", score: 10 }, { t: "仅USB充电口", score: 0 }] },
                     { q: "11号线的最高运行速度是？", options: [{ t: "120 km/h", score: 10 }, { t: "100 km/h", score: 0 }, { t: "80 km/h", score: 0 }, { t: "140 km/h", score: 0 }] },
                     { q: "11号线俗称是？", options: [{ t: "机场快线", score: 10 }, { t: "滨海快线", score: 0 }, { t: "宝安专线", score: 0 }, { t: "CBD快线", score: 0 }] },
                     { q: "11号线哪段是全线最震撼的跨海/海底区间？", options: [{ t: "碧海湾 - 机场", score: 10 }, { t: "后海 - 红树湾南", score: 0 }, { t: "机场 - 福永", score: 0 }, { t: "赤湾 - 海上世界", score: 0 }] },
-                    { q: "11号线列车由哪家企业生产？", options: [{ t: "中车株洲电力机车（株机）", score: 10 }, { t: "中车青岛四方", score: 0 }, { t: "庞巴迪", score: 0 }, { t: "阿尔斯通", score: 0 }] },
+                    { q: "11号线旧列车由哪家企业生产？", options: [{ t: "中车株洲电力机车（株机）", score: 10 }, { t: "中车青岛四方", score: 0 }, { t: "庞巴迪", score: 0 }, { t: "阿尔斯通", score: 0 }] },
                     { q: "11号线的识别色是？", options: [{ t: "暗紫红色", score: 10 }, { t: "粉红色", score: 0 }, { t: "深蓝色", score: 0 }, { t: "金黄色", score: 0 }] },
                     { q: "11号线福田站是深圳地铁极罕见的超深层车站，其站台约在地下多少米？", options: [{ t: "约34米（地下3~4层）", score: 10 }, { t: "约10米（地下1层）", score: 0 }, { t: "约20米（地下2层）", score: 0 }, { t: "约60米（地下6层）", score: 0 }] },
                     { q: "11号线商务车厢每节能容纳多少名乘客（座位数）？", options: [{ t: "约50座", score: 10 }, { t: "约10座", score: 0 }, { t: "约100座", score: 0 }, { t: "约30座", score: 0 }] },
@@ -310,7 +342,47 @@ metroL4: [
                     { q: "11号线属于深圳地铁第几期建设工程？", options: [{ t: "三期", score: 10 }, { t: "二期", score: 0 }, { t: "四期", score: 0 }, { t: "一期", score: 0 }] }
                 ]
             ],
-        }
+
+            line12: [
+                [
+                    { q: "12号线的识别色是？", options: [{ t: "淡紫色", score: 10 }, { t: "天蓝色", score: 0 }, { t: "橙黄色", score: 0 }, { t: "翠绿色", score: 0 }] },
+                    { q: "12号线正式开通运营的年份是？", options: [{ t: "2022年", score: 10 }, { t: "2019年", score: 0 }, { t: "2021年", score: 0 }, { t: "2023年", score: 0 }] },
+                    { q: "12号线的起点站是？", options: [{ t: "左炮台东", score: 10 }, { t: "左炮台东", score: 0 }, { t: "兴东", score: 0 }, { t: "福永", score: 0 }] },
+                    { q: "12号线的终点站是？", options: [{ t: "松岗", score: 10 }, { t: "南山", score: 0 }, { t: "海上世界", score: 0 }, { t: "机场东", score: 0 }] },
+                    { q: "12号线是深圳地铁首条采用哪种新技术的线路？", options: [{ t: "轮轨智能诊断系统", score: 10 }, { t: "全自动无人驾驶GoA4", score: 0 }, { t: "磁浮悬挂", score: 0 }, { t: "燃料电池动力", score: 0 }] },
+                    { q: "12号线穿越了哪个著名的历史海防遗址？", options: [{ t: "赤湾炮台（左炮台）", score: 10 }, { t: "大鹏所城", score: 0 }, { t: "南头古城", score: 0 }, { t: "东江纵队旧址", score: 0 }] },
+                    { q: "12号线与11号线的换乘站是？", options: [{ t: "南山", score: 10 }, { t: "赤湾", score: 0 }, { t: "南山", score: 0 }, { t: "前海湾", score: 0 }] },
+                    { q: "12号线列车采用哪种编组？", options: [{ t: "6A型", score: 10 }, { t: "4B型", score: 0 }, { t: "8A型", score: 0 }, { t: "6B型", score: 0 }] },
+                    { q: "12号线穿越了宝安区的哪个重要物流节点？", options: [{ t: "福永码头/空港区域", score: 10 }, { t: "盐田港", score: 0 }, { t: "蛇口港", score: 0 }, { t: "大铲湾港", score: 0 }] },
+                    { q: "12号线与1号线的换乘站是？", options: [{ t: "桃园", score: 10 }, { t: "西乡", score: 0 }, { t: "兴东", score: 0 }, { t: "宝安中心", score: 0 }] },
+                    { q: "12号线的外号是？", options: [{ t: "烂爆", score: 10 }, { t: "南宝", score: 0 }, { t: "换乘王", score: 0 }, { t: "我不知道", score: 0 }] },
+                    { q: "12号线属于深圳地铁第几期建设工程？", options: [{ t: "四期", score: 10 }, { t: "三期", score: 0 }, { t: "五期", score: 0 }, { t: "二期", score: 0 }] },
+                    { q: "12号线途经的海上世界是深圳哪处著名的文化商业地标？", options: [{ t: "南山招商蛇口片区", score: 10 }, { t: "福田CBD", score: 0 }, { t: "前海自贸区核心区", score: 0 }, { t: "宝安滨海文化公园", score: 0 }] },
+                    { q: "12号线全线共有多少座车站？", options: [{ t: "约41座", score: 10 }, { t: "约20座", score: 0 }, { t: "约30座", score: 0 }, { t: "约55座", score: 0 }] },
+                    { q: "12号线与5号线在哪个站换乘？", options: [{ t: "灵芝", score: 10 }, { t: "南山", score: 0 }, { t: "宝安中心", score: 0 }, { t: "西乡", score: 0 }] }
+                ]
+            ],
+
+            line13: [
+                [
+                    { q: "13号线的识别色是？", options: [{ t: "橙色", score: 10 }, { t: "天蓝色", score: 0 }, { t: "草绿色", score: 0 }, { t: "粉红色", score: 0 }] },
+                    { q: "13号线目前的开通状态是？", options: [{ t: "一期已开", score: 10 }, { t: "全线运营", score: 0 }, { t: "尚未开通", score: 0 }, { t: "已停运", score: 0 }] },
+                    { q: "13号线是深圳地铁最早规划的连接哪两大区域的线路？", options: [{ t: "前海-光明", score: 10 }, { t: "福田-龙华", score: 0 }, { t: "宝安-龙岗", score: 0 }, { t: "南山-坪山", score: 0 }] },
+                    { q: "13号线全自动驾驶等级为？", options: [{ t: "GoA4（全自动无人驾驶）", score: 10 }, { t: "GoA3", score: 0 }, { t: "GoA2", score: 0 }, { t: "GoA1（人工驾驶）", score: 0 }] },
+                    { q: "13号线一期的南端起点站是？", options: [{ t: "深圳湾口岸", score: 10 }, { t: "前海湾", score: 0 }, { t: "宝安中心", score: 0 }, { t: "海上世界", score: 0 }] },
+                    { q: "13号线为何被认为是深圳西部重要的南北走廊？", options: [{ t: "纵贯南山、宝安到光明新区", score: 10 }, { t: "横穿福田CBD到龙华", score: 0 }, { t: "连接深圳北站到机场", score: 0 }, { t: "环绕南山商业区", score: 0 }] },
+                    { q: "13号线与5号线在哪个站换乘？", options: [{ t: "留仙洞", score: 10 }, { t: "宝安中心", score: 0 }, { t: "南山", score: 0 }, { t: "兴东", score: 0 }] },
+                    { q: "13号线列车采用什么编组形式？", options: [{ t: "8A全自动", score: 10 }, { t: "4B人工", score: 0 }, { t: "6A全自动", score: 0 }, { t: "3节有轨", score: 0 }] },
+                    { q: "13号线采用的供电方式是？", options: [{ t: "架空接触网 DC1500V", score: 10 }, { t: "第三轨 DC750V", score: 0 }, { t: "燃料电池", score: 0 }, { t: "接触轨 DC1500V", score: 0 }] },
+                    { q: "13号线一期北延至的光明区终点站是？", options: [{ t: "上屋", score: 10 }, { t: "松岗", score: 0 }, { t: "公明南", score: 0 }, { t: "楼村", score: 0 }] },
+                    { q: "13号线经过了某个人的家，哪个车站是？", options: [{ t: "新庄", score: 10 }, { t: "上屋", score: 0 }, { t: "李松蓢", score: 0 }, { t: "深圳湾口岸", score: 0 }] },
+                    { q: "13号线属于深圳地铁第几期工程？", options: [{ t: "四期", score: 10 }, { t: "三期", score: 0 }, { t: "五期", score: 0 }, { t: "二期", score: 0 }] },
+                    { q: "13号线与11号线在哪个站形成换乘？", options: [{ t: "后海", score: 10 }, { t: "南山", score: 0 }, { t: "宝安中心", score: 0 }, { t: "机场", score: 0 }] },
+                    { q: "13号线正式命名前，民间习惯将其称为？", options: [{ t: "石岩线", score: 10 }, { t: "光明快线", score: 0 }, { t: "南北干线", score: 0 }, { t: "西部快速线", score: 0 }] },
+                    { q: "13号线的目前车辆停于？", options: [{ t: "内湖停车场", score: 10 }, { t: "蛇口车辆段", score: 0 }, { t: "前海车辆段", score: 0 }, { t: "龙华车辆段", score: 0 }] }
+                ]
+            ],
+        };
 
         const LINE_COLORS = {
             "1": "#00ab39", "2": "#db6d1c", "3": "#00a2e1", "4": "#dc241f",
@@ -389,9 +461,10 @@ metroL4: [
                             <h2 class="text-xl font-bold text-gray-800">选择难度</h2>
                             <div class="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">最高分: ${high}</div>
                         </div>
-                        <div class="flex gap-1 mb-5 p-1 bg-gray-100/80 rounded-2xl">
-                            <button data-tab="basic" onclick="app.switchTab('basic')" class="menu-tab-pill flex-1 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${state.menuTab === 'basic' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-400 hover:text-gray-600'}">基本</button>
-                            <button data-tab="ext" onclick="app.switchTab('ext')" class="menu-tab-pill flex-1 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${state.menuTab === 'ext' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-400 hover:text-gray-600'}">扩展</button>
+                        <div class="flex gap-1 mb-5 p-1 bg-gray-100/80 rounded-2xl tab-track">
+                            <div id="tab-slider-el" class="tab-slider ${state.menuTab === 'ext' ? 'right' : ''}"></div>
+                            <button data-tab="basic" onclick="app.switchTab('basic')" class="tab-pill-label ${state.menuTab === 'basic' ? 'text-gray-800' : 'text-gray-400'}">基本</button>
+                            <button data-tab="ext" onclick="app.switchTab('ext')" class="tab-pill-label ${state.menuTab === 'ext' ? 'text-gray-800' : 'text-gray-400'}">扩展</button>
                         </div>
                         <div id="tab-content" class="space-y-4 pb-6">
                             ${this.getTabContent()}
@@ -430,17 +503,31 @@ metroL4: [
                             <h3 class="text-lg font-bold" style="color:#6a1d44">🟤 11号线</h3>
                             <p class="text-xs text-gray-500 mt-2">啊啊啊啊~猫好烧！！！！！</p>
                         </button>
+                        <button onclick="app.startQuiz('line12')" class="w-full text-left p-6 rounded-[2rem] border-2 border-purple-50 bg-white/40 hover:border-purple-400 hover:bg-white transition-all shadow-sm">
+                            <h3 class="text-lg font-bold" style="color:#a192b2">🟣 12号线</h3>
+                            <p class="text-xs text-gray-500 mt-2">南山到兴东，覆盖前海与海上世界。</p>
+                        </button>
+                        <button onclick="app.startQuiz('line13')" class="w-full text-left p-6 rounded-[2rem] border-2 border-orange-50 bg-white/40 hover:border-orange-400 hover:bg-white transition-all shadow-sm">
+                            <h3 class="text-lg font-bold" style="color:#de7c00">🟠 13号线</h3>
+                            <p class="text-xs text-gray-500 mt-2">西部南北走廊，前海通光明。</p>
+                        </button>
                     `;
                 }
             },
 
             switchTab(tab) {
                 if (state.menuTab === tab) return;
-                const content = document.getElementById('tab-content');
-                document.querySelectorAll('.menu-tab-pill').forEach(btn => {
-                    const active = btn.dataset.tab === tab;
-                    btn.className = `menu-tab-pill flex-1 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${active ? 'bg-white shadow-sm text-gray-800' : 'text-gray-400 hover:text-gray-600'}`;
+                // 移动滑块
+                const slider = document.getElementById('tab-slider-el');
+                if (slider) {
+                    slider.classList.toggle('right', tab === 'ext');
+                }
+                // 更新 pill label 颜色
+                document.querySelectorAll('.tab-pill-label').forEach(btn => {
+                    btn.className = `tab-pill-label ${btn.dataset.tab === tab ? 'text-gray-800' : 'text-gray-400'}`;
                 });
+                // 淡出内容
+                const content = document.getElementById('tab-content');
                 if (content) {
                     content.style.opacity = '0';
                     content.style.transform = 'translateY(8px)';
@@ -508,7 +595,7 @@ metroL4: [
                         <div class="flex justify-between items-start mb-8 flex-wrap gap-2">
                             <div>
                                 <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Question ${state.currentIdx + 1} / 15</span>
-                                <h3 class="text-2xl font-black text-gray-900 mt-1">${state.mode === 'easy' ? '简单点的' : state.mode === 'hard' ? '难点的' : state.mode === 'metroL4' ? '4号线' : state.mode === 'line7' ? '7号线' : '11号线'}测题</h3>
+                                <h3 class="text-2xl font-black text-gray-900 mt-1">${state.mode === 'easy' ? '简单点的' : state.mode === 'hard' ? '难点的' : state.mode === 'metroL4' ? '4号线' : state.mode === 'line7' ? '7号线' : state.mode === 'line11' ? '11号线' : state.mode === 'line12' ? '12号线' : state.mode === 'line13' ? '13号线' : '11号线'}测题</h3>
                             </div>
                             <div class="text-right">
                                 <div class="text-2xl font-black text-gray-200">${Math.round(progress)}%</div>
@@ -599,6 +686,28 @@ metroL4: [
         };
         window.app = app;
         window.closeDisclaimer = closeDisclaimer;
+
+        // 构建版本徽章：从 GitHub API 获取最新部署信息
+        (function fetchBuildInfo() {
+            fetch('https://api.github.com/repos/GuanyuChan/szmtrtest/deployments?environment=github-pages&per_page=1')
+                .then(r => r.json())
+                .then(data => {
+                    if (!Array.isArray(data) || data.length === 0) return;
+                    const dep = data[0];
+                    const sha = dep.sha ? dep.sha.slice(0, 7) : '—';
+                    const created = new Date(dep.created_at);
+                    const diffMs = Date.now() - created;
+                    const diffMin = Math.floor(diffMs / 60000);
+                    let ago;
+                    if (diffMin < 60) ago = diffMin + ' 分钟前';
+                    else if (diffMin < 1440) ago = Math.floor(diffMin / 60) + ' 小时前';
+                    else ago = Math.floor(diffMin / 1440) + ' 天前';
+                    document.getElementById('build-ver').textContent = '构建版本号  ' + sha;
+                    document.getElementById('build-ago').textContent = '部署于 ' + ago;
+                    document.getElementById('build-badge').style.display = 'block';
+                })
+                .catch(() => {});
+        })();
     </script>
 </body>
 </html
