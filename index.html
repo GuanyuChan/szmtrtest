@@ -403,7 +403,7 @@ metroL4: [
             getTabContent() {
                 if (state.menuTab === 'basic') {
                     return `
-                        <h2 class="text-m font-bold text-gray-400 mb-2">最基本的题目啦，覆盖整个深圳地铁</h2>
+                        <h2 class="text-m font-bold text-gray-400 mb-2">覆盖整个深圳地铁，每个难度包含三套题库</h2>
                         <button onclick="app.startQuiz('easy')" class="w-full text-left p-6 rounded-[2rem] border-2 border-emerald-50 bg-white/40 hover:border-emerald-500 hover:bg-white transition-all shadow-sm">
                             <h3 class="text-lg font-bold text-emerald-700">🟢 啊~简单点的</h3>
                             <p class="text-xs text-gray-500 mt-2">覆盖主要线路与常识。</p>
@@ -415,7 +415,7 @@ metroL4: [
                     `;
                 } else {
                     return `
-                        <h2 class="text-m font-bold text-gray-400 mb-2">覆盖了个别线路，持续更新qwq</h2>
+                        <h2 class="text-m font-bold text-gray-400 mb-2">覆盖了个别线路，每一个难度只有一套题库。持续更新qwq</h2>
                         <button onclick="app.startQuiz('metroL4')" class="w-full text-left p-6 rounded-[2rem] border-2 border-red-50 bg-white/40 hover:border-red-500 hover:bg-white transition-all shadow-sm">
                             <h3 class="text-lg font-bold" style="color:#dc241f">🔴 4号线</h3>
                             <p class="text-xs text-gray-500 mt-2">某个港铁深圳米叫我做这个，我做了。</p>
